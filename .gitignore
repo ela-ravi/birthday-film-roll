@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.DS_Store
+# personal content stays out of version control
+photos/*
+!photos/.gitkeep
+config.json
+captions.json
