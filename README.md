@@ -1,20 +1,26 @@
 # Birthday Film Roll
 
-Turn a folder of photos into **one password-protected HTML file** that plays as a slideshow with captions. Send the file, or host it anywhere (Netlify Drop, GitHub Pages). Without the password, nobody can see the photos.
+Turn your photos into **one password-protected HTML file** that plays as a slideshow with captions. Send the file, or host it anywhere (Netlify Drop, GitHub Pages). Without the password, nobody can see the photos.
 
-## Use it
+## Option A: No install (for everyone)
+
+1. Double-click **`film-roll-maker.html`** (or open it from a hosted link, see below).
+2. Enter the name, add photos, type optional captions, and choose a password.
+3. Click **Create my film roll**. You get `<name>_Birthday_Protected.html` in your Downloads folder.
+
+Everything runs in your browser and your photos are never uploaded. It works in Chrome, Safari and Edge.
+
+**Hosting the maker as a link:** `film-roll-maker.html` is a single static file. Upload it to GitHub Pages or Netlify Drop and share the link. Non-technical friends can then use it without downloading anything.
+
+## Option B: Command line (for developers)
 
 1. Install [Node.js](https://nodejs.org) 18 or newer.
 2. Put your photos (`.jpg`, `.jpeg`, `.png`, `.webp`) in the `photos/` folder. They play in filename order, so name them `01_...`, `02_...` to control the order.
-3. Copy `config.example.json` to `config.json` and set the person's name (and `captions.example.json` to `captions.json` if you want captions). Both are git-ignored, so they stay private:
+3. Copy `config.example.json` to `config.json` and set the person's name. Optionally copy `captions.example.json` to `captions.json` and add captions keyed by filename. Both are git-ignored, so they stay private:
    ```json
    { "name": "Anitha", "photoSeconds": 2.5, "maxPixels": 1280, "jpegQuality": 70 }
    ```
-4. (Optional) Add captions in `captions.json`, keyed by filename. Photos without a caption show none:
-   ```json
-   { "01_beach.jpg": "Our best trip ever 🌊" }
-   ```
-5. Build:
+4. Build:
    ```bash
    npm install        # first time only
    npm run build      # asks for a password (empty = generates one)
@@ -25,9 +31,16 @@ The result is `dist/<name>_Birthday_Protected.html`, for example `dist/Anitha_Bi
 
 ## Notes
 
-- **Password:** it is not stored anywhere. If you lose it, rebuild with a new one.
-- **Encryption:** the slideshow is encrypted with AES-256-GCM, with the key derived from your password using PBKDF2 (600,000 rounds). A long password is safer than a short one if the link is public.
-- **Browsers:** the file must be opened in a modern browser. Some in-app browsers (WhatsApp, Instagram) fail, so tell people to open it in Chrome or Safari.
-- **Photo quality:** photos are resized to `maxPixels` on the longest edge and re-compressed, which keeps the file small. Raise `maxPixels` or `jpegQuality` for sharper images and a bigger file.
-- **Privacy:** `photos/` and `dist/` are in `.gitignore`, so personal photos are not committed.
-- **Customising:** `src/slideshow.html` is the player and `src/gate.html` is the password screen. Edit them to change the look.
+- **Password:** it is not stored anywhere. If you lose it, create the file again with a new one.
+- **Encryption:** the slideshow is encrypted with AES-256-GCM, with the key derived from your password using PBKDF2 (600,000 rounds). A long password is safer than a short one if the link is public. Both options produce the same file format.
+- **Browsers:** the finished file must be opened in a modern browser. Some in-app browsers (WhatsApp, Instagram) fail, so tell people to open it in Chrome or Safari.
+- **Photo quality:** photos are resized to 1280 px on the longest edge and re-compressed, which keeps the file small. For the command line, raise `maxPixels` or `jpegQuality` for sharper images and a bigger file.
+- **Privacy:** `photos/`, `dist/`, `config.json` and `captions.json` are in `.gitignore`, so personal content is not committed.
+
+## Customising
+
+`src/slideshow.html` is the player, `src/gate.html` is the password screen, and `src/builder.html` is the maker page. After editing anything in `src/`, regenerate the single-file maker:
+
+```bash
+npm run build:ui
+```

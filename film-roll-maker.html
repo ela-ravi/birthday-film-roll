@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Film Roll Maker</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f1ec; color: #222; }
+  main { max-width: 760px; margin: 0 auto; padding: 28px 18px 80px; }
+  h1 { margin: 0 0 4px; font-size: 28px; }
+  .sub { margin: 0 0 24px; color: #666; }
+  .card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 18px; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+  .card h2 { margin: 0 0 12px; font-size: 17px; }
+  .step { display: inline-block; width: 24px; height: 24px; line-height: 24px; text-align: center; border-radius: 50%; background: #222; color: #fff; font-size: 13px; margin-right: 8px; }
+  label { display: block; font-size: 14px; font-weight: 600; margin: 12px 0 5px; }
+  input[type=text], input[type=password], input[type=number] { width: 100%; padding: 10px 12px; font-size: 15px; border: 1px solid #ccc; border-radius: 8px; }
+  .row { display: flex; gap: 8px; }
+  .row > input { flex: 1; }
+  button { padding: 10px 16px; font-size: 14px; font-weight: 600; border: 1px solid #ccc; border-radius: 8px; background: #fff; cursor: pointer; }
+  button:hover { background: #f0f0f0; }
+  button.primary { background: #c2410c; border-color: #c2410c; color: #fff; padding: 14px 22px; font-size: 16px; width: 100%; }
+  button.primary:hover { background: #9a3412; }
+  button:disabled { opacity: .5; cursor: default; }
+  #drop { border: 2px dashed #bbb; border-radius: 10px; padding: 28px 14px; text-align: center; color: #666; cursor: pointer; }
+  #drop.over { border-color: #c2410c; background: #fff7ed; }
+  #list { margin-top: 14px; }
+  .item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid #eee; }
+  .item img { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; background: #ddd; flex: none; }
+  .item .num { width: 22px; color: #999; font-size: 13px; text-align: right; flex: none; }
+  .item .cap { flex: 1; min-width: 0; }
+  .item .cap small { display: block; color: #999; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 3px; }
+  .item input { padding: 7px 9px; font-size: 14px; }
+  .item .ctl { display: flex; gap: 4px; flex: none; }
+  .item .ctl button { padding: 6px 9px; }
+  .hint { font-size: 13px; color: #777; margin-top: 8px; }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 14px; color: #555; }
+  #progress { height: 8px; background: #e5e5e5; border-radius: 4px; overflow: hidden; margin-top: 14px; display: none; }
+  #bar { height: 100%; width: 0; background: #c2410c; transition: width .15s; }
+  #status { margin-top: 10px; font-size: 14px; min-height: 20px; }
+  #status.err { color: #b91c1c; }
+  #done { display: none; background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 10px; padding: 16px; margin-top: 16px; font-size: 14px; line-height: 1.6; }
+  #done b.pw { font-family: ui-monospace, Menlo, monospace; background: #fff; padding: 2px 6px; border-radius: 4px; }
+  .privacy { font-size: 13px; color: #555; background: #fff7ed; border-radius: 8px; padding: 10px 12px; margin-bottom: 18px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>🎞️ Film Roll Maker</h1>
+  <p class="sub">Turn your photos into one password-protected birthday slideshow file.</p>
+  <div class="privacy">🔒 Everything happens inside your browser. Your photos are <b>never uploaded</b> anywhere.</div>
+
+  <div class="card">
+    <h2><span class="step">1</span>Who is it for?</h2>
+    <label for="name">Name</label>
+    <input id="name" type="text" placeholder="e.g. Anitha" maxlength="40">
+  </div>
+
+  <div class="card">
+    <h2><span class="step">2</span>Add your photos</h2>
+    <div id="drop">📷 Click to choose photos, or drag them here</div>
+    <input id="files" type="file" accept="image/*" multiple hidden>
+    <div class="hint">JPG, PNG or WebP. Photos start in filename order. Use ▲ ▼ to change the order, and type a caption under each one (optional).</div>
+    <div class="toolbar" id="toolbar" style="display:none"><span id="count"></span><button id="clear" type="button">Remove all</button></div>
+    <div id="list"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step">3</span>Choose a password</h2>
+    <label for="pw">Password (share it separately from the file)</label>
+    <div class="row">
+      <input id="pw" type="password" placeholder="At least 6 characters" autocomplete="new-password">
+      <button id="show" type="button">Show</button>
+      <button id="gen" type="button">Generate</button>
+    </div>
+    <div class="hint">⚠️ The password is not saved anywhere. If you forget it, the file cannot be opened. You'd have to create it again.</div>
+    <label for="secs">Seconds per photo</label>
+    <input id="secs" type="number" min="1" max="15" step="0.5" value="2.5" style="width:120px">
+  </div>
+
+  <button class="primary" id="build" type="button">Create my film roll</button>
+  <div id="progress"><div id="bar"></div></div>
+  <div id="status"></div>
+  <div id="done"></div>
+</main>
+
+<script>
+const SLIDESHOW = "\u003c!DOCTYPE html>\n\u003chtml lang=\"en\">\n\u003chead>\n  \u003cmeta charset=\"UTF-8\">\n  \u003cmeta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  \u003ctitle>__TITLE__\u003c/title>\n  \u003cstyle>\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body {\n      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n      background: #0a0a0a;\n      display: flex;\n      justify-content: center;\n      align-items: center;\n      min-height: 100vh;\n      padding: 20px;\n    }\n    .container {\n      width: 100%;\n      max-width: 400px;\n      aspect-ratio: 9/16;\n      max-height: 95vh;\n      position: relative;\n      background: #000;\n      border-radius: 12px;\n      overflow: hidden;\n      box-shadow: 0 20px 60px rgba(0,0,0,0.8);\n    }\n    .container:fullscreen, .container.fs {\n      max-width: none; max-height: none; width: 100%; height: 100%; aspect-ratio: auto; border-radius: 0;\n    }\n    .container.fs { position: fixed; inset: 0; z-index: 100; }\n    .slide {\n      position: absolute;\n      inset: 0;\n      width: 100%;\n      height: 100%;\n      object-fit: contain;\n      opacity: 0;\n      transition: opacity 0.6s ease;\n    }\n    .slide.active { opacity: 1; }\n    .counter {\n      position: absolute; top: 16px; left: 16px;\n      color: #fff; font-size: 14px; font-weight: 600;\n      background: rgba(0,0,0,0.6); padding: 8px 12px; border-radius: 6px; z-index: 10;\n    }\n    .caption {\n      position: absolute; bottom: 80px; left: 16px; right: 16px;\n      color: #fff; font-size: 14px; text-align: center; line-height: 1.4;\n      background: rgba(0,0,0,0.65); padding: 12px; border-radius: 6px; z-index: 10;\n    }\n    .controls {\n      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);\n      display: flex; gap: 10px; z-index: 10;\n    }\n    button {\n      padding: 10px 16px; background: rgba(255,255,255,0.9); border: none;\n      border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;\n    }\n    button:hover { background: #fff; }\n  \u003c/style>\n\u003c/head>\n\u003cbody>\n  \u003cdiv class=\"container\" id=\"container\">\n    \u003cdiv class=\"counter\" id=\"counter\">\u003c/div>\n    \u003cdiv class=\"caption\" id=\"caption\">\u003c/div>\n    \u003cdiv class=\"controls\">\n      \u003cbutton id=\"prevBtn\">&#9664;\u003c/button>\n      \u003cbutton id=\"playBtn\">&#10074;&#10074; Pause\u003c/button>\n      \u003cbutton id=\"nextBtn\">&#9654;\u003c/button>\n      \u003cbutton id=\"fsBtn\">&#9974; Fullscreen\u003c/button>\n    \u003c/div>\n  \u003c/div>\n\n  \u003cscript>\n    const PHOTOS = __PHOTOS__; // [{ src, caption }]\n    const DURATION = __DURATION__;\n    const container = document.getElementById(\"container\");\n    const counter = document.getElementById(\"counter\");\n    const caption = document.getElementById(\"caption\");\n    const playBtn = document.getElementById(\"playBtn\");\n\n    const slides = PHOTOS.map((p, n) => {\n      const img = document.createElement(\"img\");\n      img.className = \"slide\";\n      img.src = p.src;\n      img.alt = \"Photo \" + (n + 1);\n      container.insertBefore(img, counter);\n      return img;\n    });\n\n    let index = 0;\n    let timer = null;\n\n    function show(i) {\n      index = (i + PHOTOS.length) % PHOTOS.length;\n      slides.forEach((s, n) => s.classList.toggle(\"active\", n === index));\n      counter.textContent = \"Photo \" + (index + 1) + \" / \" + PHOTOS.length;\n      caption.textContent = PHOTOS[index].caption;\n      caption.style.display = PHOTOS[index].caption ? \"\" : \"none\";\n    }\n\n    function play() {\n      clearInterval(timer);\n      timer = setInterval(() => show(index + 1), DURATION);\n      playBtn.innerHTML = \"&#10074;&#10074; Pause\";\n    }\n    function pause() {\n      clearInterval(timer);\n      timer = null;\n      playBtn.innerHTML = \"&#9654; Play\";\n    }\n\n    playBtn.onclick = () => (timer ? pause() : play());\n    document.getElementById(\"nextBtn\").onclick = () => { show(index + 1); if (timer) play(); };\n    document.getElementById(\"prevBtn\").onclick = () => { show(index - 1); if (timer) play(); };\n    // Real fullscreen where the browser allows it; otherwise fill the window (e.g. iPhone, embedded browsers).\n    document.getElementById(\"fsBtn\").onclick = async () => {\n      const nativeEl = document.fullscreenElement || document.webkitFullscreenElement;\n      if (nativeEl) return (document.exitFullscreen || document.webkitExitFullscreen).call(document);\n      if (container.classList.contains(\"fs\")) return container.classList.remove(\"fs\");\n      const req = container.requestFullscreen || container.webkitRequestFullscreen;\n      try {\n        if (!req) throw new Error(\"unsupported\");\n        await req.call(container);\n      } catch (e) {\n        container.classList.add(\"fs\");\n      }\n    };\n\n    show(0);\n    play();\n  \u003c/script>\n\u003c/body>\n\u003c/html>\n";
+const GATE = "\u003c!DOCTYPE html>\n\u003chtml lang=\"en\">\n\u003chead>\n\u003cmeta charset=\"UTF-8\">\n\u003cmeta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\u003cmeta name=\"robots\" content=\"noindex,nofollow\">\n\u003ctitle>__TITLE__\u003c/title>\n\u003cstyle>\n  html, body { margin: 0; height: 100%; background: #0a0a0a; font-family: 'Segoe UI', Tahoma, sans-serif; }\n  #gate { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #fff; padding: 20px; text-align: center; }\n  #gate h1 { font-size: 22px; font-weight: 600; }\n  input { padding: 12px 14px; font-size: 16px; border-radius: 6px; border: none; width: 240px; max-width: 80vw; }\n  button { padding: 12px 20px; font-size: 15px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; background: #fff; }\n  #msg { color: #f87171; min-height: 20px; font-size: 14px; }\n  iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; }\n\u003c/style>\n\u003c/head>\n\u003cbody>\n\u003cform id=\"gate\">\n  \u003ch1>🎂 A birthday surprise for __NAME__\u003c/h1>\n  \u003cinput id=\"pw\" type=\"password\" placeholder=\"Enter password\" autocomplete=\"current-password\" autofocus>\n  \u003cbutton type=\"submit\">Open\u003c/button>\n  \u003cdiv id=\"msg\">\u003c/div>\n\u003c/form>\n\u003cscript>\nconst SALT = \"__SALT__\";\nconst IV = \"__IV__\";\nconst ITER = __ITER__;\nconst DATA = \"__DATA__\";\n\nconst b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));\n\ndocument.getElementById(\"gate\").addEventListener(\"submit\", async e => {\n  e.preventDefault();\n  const msg = document.getElementById(\"msg\");\n  msg.textContent = \"Opening...\";\n  try {\n    const base = await crypto.subtle.importKey(\"raw\", new TextEncoder().encode(document.getElementById(\"pw\").value), \"PBKDF2\", false, [\"deriveKey\"]);\n    const key = await crypto.subtle.deriveKey({ name: \"PBKDF2\", salt: b64(SALT), iterations: ITER, hash: \"SHA-256\" }, base, { name: \"AES-GCM\", length: 256 }, false, [\"decrypt\"]);\n    const plain = await crypto.subtle.decrypt({ name: \"AES-GCM\", iv: b64(IV) }, key, b64(DATA));\n    const frame = document.createElement(\"iframe\");\n    frame.setAttribute(\"allow\", \"fullscreen *\"); // \"*\" is needed: a srcdoc frame has no origin of its own\n    frame.srcdoc = new TextDecoder().decode(plain);\n    document.body.innerHTML = \"\";\n    document.body.appendChild(frame);\n  } catch (err) {\n    msg.textContent = window.crypto && crypto.subtle ? \"Wrong password. Try again.\" : \"Please open this over https or in Chrome/Safari.\";\n  }\n});\n\u003c/script>\n\u003c/body>\n\u003c/html>\n";
+const MAX_PX = 1280, QUALITY = 0.7, ITER = 600000;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const fill = (tpl, vars) => tpl.replace(/__([A-Z]+)__/g, (m, k) => (k in vars ? vars[k] : m));
+const nap = () => new Promise(r => setTimeout(r));
+
+let items = []; // { file, caption, url }
+
+// ---------- photo list ----------
+function addFiles(fileList) {
+  const added = [...fileList]
+    .filter(f => f.type.startsWith("image/") || /\.(jpe?g|png|webp|heic)$/i.test(f.name))
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }));
+  for (const file of added) items.push({ file, caption: "", url: URL.createObjectURL(file) });
+  render();
+}
+
+function render() {
+  const list = $("list");
+  list.innerHTML = "";
+  $("toolbar").style.display = items.length ? "flex" : "none";
+  $("count").textContent = items.length + (items.length === 1 ? " photo" : " photos");
+  items.forEach((it, i) => {
+    const row = document.createElement("div");
+    row.className = "item";
+    row.innerHTML = `<span class="num">${i + 1}</span><img alt=""><div class="cap"><small></small><input type="text" placeholder="Caption (optional)" maxlength="200"></div>
+      <div class="ctl"><button type="button" title="Move up">▲</button><button type="button" title="Move down">▼</button><button type="button" title="Remove">✕</button></div>`;
+    row.querySelector("img").src = it.url;
+    row.querySelector("small").textContent = it.file.name;
+    const input = row.querySelector("input");
+    input.value = it.caption;
+    input.oninput = () => (it.caption = input.value);
+    const [up, down, del] = row.querySelectorAll("button");
+    up.disabled = i === 0;
+    down.disabled = i === items.length - 1;
+    up.onclick = () => { [items[i - 1], items[i]] = [items[i], items[i - 1]]; render(); };
+    down.onclick = () => { [items[i + 1], items[i]] = [items[i], items[i + 1]]; render(); };
+    del.onclick = () => { URL.revokeObjectURL(it.url); items.splice(i, 1); render(); };
+    list.appendChild(row);
+  });
+}
+
+const drop = $("drop");
+drop.onclick = () => $("files").click();
+$("files").onchange = e => { addFiles(e.target.files); e.target.value = ""; };
+drop.ondragover = e => { e.preventDefault(); drop.classList.add("over"); };
+drop.ondragleave = () => drop.classList.remove("over");
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove("over"); addFiles(e.dataTransfer.files); };
+$("clear").onclick = () => { items.forEach(i => URL.revokeObjectURL(i.url)); items = []; render(); };
+
+// ---------- password helpers ----------
+$("show").onclick = () => {
+  const p = $("pw"), hidden = p.type === "password";
+  p.type = hidden ? "text" : "password";
+  $("show").textContent = hidden ? "Hide" : "Show";
+};
+$("gen").onclick = () => {
+  const chars = "abcdefghjkmnpqrstuvwxyz23456789";
+  const rnd = crypto.getRandomValues(new Uint32Array(10));
+  $("pw").value = [...rnd].map(n => chars[n % chars.length]).join("");
+  $("pw").type = "text";
+  $("show").textContent = "Hide";
+};
+
+// ---------- building ----------
+function setStatus(msg, isErr) { $("status").textContent = msg; $("status").className = isErr ? "err" : ""; }
+function setProgress(p) { $("progress").style.display = "block"; $("bar").style.width = Math.round(p * 100) + "%"; }
+
+function blobToDataURL(blob) {
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob); });
+}
+
+async function shrink(file) {
+  const bmp = await createImageBitmap(file, { imageOrientation: "from-image" }); // keeps phone photos upright
+  const scale = Math.min(1, MAX_PX / Math.max(bmp.width, bmp.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bmp.width * scale);
+  canvas.height = Math.round(bmp.height * scale);
+  canvas.getContext("2d").drawImage(bmp, 0, 0, canvas.width, canvas.height);
+  bmp.close();
+  const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", QUALITY));
+  canvas.width = canvas.height = 0;
+  return blobToDataURL(blob);
+}
+
+async function encrypt(text, password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: ITER, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt"]);
+  const data = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(text)));
+  const toB64 = async bytes => (await blobToDataURL(new Blob([bytes]))).split(",")[1];
+  return { SALT: await toB64(salt), IV: await toB64(iv), DATA: await toB64(data) };
+}
+
+$("build").onclick = async () => {
+  const name = $("name").value.trim();
+  const password = $("pw").value;
+  const secs = Math.min(15, Math.max(1, parseFloat($("secs").value) || 2.5));
+  $("done").style.display = "none";
+
+  if (!window.crypto || !crypto.subtle) return setStatus("This browser can't encrypt files here. Please use Chrome, Safari or Edge.", true);
+  if (!name) return setStatus("Please enter a name in step 1.", true);
+  if (!items.length) return setStatus("Please add at least one photo in step 2.", true);
+  if (password.length < 6) return setStatus("Please choose a password with at least 6 characters in step 3.", true);
+
+  $("build").disabled = true;
+  try {
+    const photos = [], failed = [];
+    for (let i = 0; i < items.length; i++) {
+      setStatus(`Preparing photo ${i + 1} of ${items.length}...`);
+      setProgress(i / items.length * 0.85);
+      await nap();
+      try { photos.push({ src: await shrink(items[i].file), caption: items[i].caption.trim() }); }
+      catch { failed.push(items[i].file.name); }
+    }
+    if (!photos.length) throw new Error("None of the photos could be read. Please use JPG, PNG or WebP files.");
+
+    setStatus("Locking with your password...");
+    setProgress(0.9);
+    await nap();
+    const title = "Happy Birthday " + name;
+    const slideshow = fill(SLIDESHOW, {
+      TITLE: esc(title),
+      DURATION: String(Math.round(secs * 1000)),
+      PHOTOS: JSON.stringify(photos).replace(/</g, "\\u003c"),
+    });
+    const enc = await encrypt(slideshow, password);
+    const page = fill(GATE, { TITLE: esc(title), NAME: esc(name), ITER: String(ITER), ...enc });
+
+    const blob = new Blob([page], { type: "text/html" });
+    let fname = name.replace(/[^\w-]+/g, "_").replace(/^_+|_+$/g, "");
+    fname = (fname || "Friend") + "_Birthday_Protected.html";
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = fname;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setProgress(1);
+    setStatus("");
+    const done = $("done");
+    done.innerHTML = `✅ <b>Done!</b> Your file <b>${esc(fname)}</b> (${(blob.size / 1e6).toFixed(1)} MB, ${photos.length} photos) was saved to your Downloads folder.<br>
+      Password: <b class="pw">${esc(password)}</b> &nbsp;(write it down, it can't be recovered)<br>
+      Send the file by email or cloud drive, or upload it to a site like Netlify Drop for a link, and tell people the password separately.
+      They should open it in Chrome or Safari.` +
+      (failed.length ? `<br><br>⚠️ Skipped ${failed.length} photo(s) that couldn't be read: ${esc(failed.join(", "))}` : "");
+    done.style.display = "block";
+  } catch (err) {
+    setStatus(err.message || "Something went wrong.", true);
+  } finally {
+    $("build").disabled = false;
+  }
+};
+</script>
+</body>
+</html>

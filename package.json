@@ -4,7 +4,8 @@
   "description": "Turn a folder of photos into one password-protected HTML slideshow.",
   "private": true,
   "scripts": {
-    "build": "node build.js"
+    "build": "node build.js",
+    "build:ui": "node build-ui.js"
   },
   "dependencies": {
     "sharp": "^0.33.5"
