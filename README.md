@@ -1,3 +1,5 @@
+> 🚀 **Live app: https://YOUR-SITE.netlify.app** (replace with your Netlify site URL; it never changes between deploys)
+
 # Birthday Film Roll
 
 Turn your photos into **one password-protected HTML file** that plays as a slideshow with captions. Send the file, or host it anywhere (Netlify Drop, GitHub Pages). Without the password, nobody can see the photos.
@@ -44,3 +46,14 @@ The result is `dist/<name>_Birthday_Protected.html`, for example `dist/Anitha_Bi
 ```bash
 npm run build:ui
 ```
+
+## Automatic deploys (Netlify)
+
+Every push to `main` that changes `src/` (or the workflow) rebuilds `film-roll-maker.html` and deploys it to Netlify as `index.html`. The site URL stays the same, so the link at the top of this README is set once by hand. Only the maker app is deployed. Your photos never are.
+
+One-time setup:
+
+1. In Netlify, create a site (for example "Add new site > Deploy manually" with any file). Copy its **Site ID** from *Site configuration > Site details*.
+2. Create a **personal access token** at *User settings > Applications > Personal access tokens*.
+3. In GitHub, open *Settings > Secrets and variables > Actions* and add two repository secrets: `NETLIFY_AUTH_TOKEN` (the token) and `NETLIFY_SITE_ID` (the Site ID).
+4. Push to `main`, or run the workflow by hand from the *Actions* tab.
